@@ -13,8 +13,8 @@ func init() {
 	srv = e
 }
 
-func Test(echo.Context) error {
-	return nil
+func Test(e echo.Context) error {
+	return e.String(200, "abcdefgh")
 }
 
 func MainFunc(w http.ResponseWriter, r *http.Request) {
