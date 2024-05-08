@@ -58,9 +58,14 @@ func Test(c echo.Context) error {
 	if err != nil {
 		c.String(200, "data error, please contact BH4FWA use Wechat.")
 	}
+
 	passcode, realCall := AprsPass(data.CallSign)
-	timeNow := time.Now().Format(time.DateTime)
-	returnStr := "Beijing Time: " + timeNow + ", InputCallSign:" + data.CallSign + ",  Calc CallSign:" + realCall + ", APRS Pass Code:" + fmt.Sprintf("%d", passcode)
+	beijingLocation, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		panic(err) // 处理错误
+	}
+	beijingTime := time.Now().In(beijingLocation).Format(time.DateTime)
+	returnStr := "Beijing Time: " + beijingTime + ", InputCallSign:" + data.CallSign + ",  Calc CallSign:" + realCall + ", APRS Pass Code:" + fmt.Sprintf("%d", passcode)
 	fmt.Println(returnStr)
 	return c.String(200, returnStr)
 }
