@@ -16,9 +16,14 @@ func init() {
 	srv = e
 }
 
+type APRSCallSign struct {
+	CallSign string `json:"call_sign" form:"call_sign" query:"call_sign"`
+}
+
 // aprsPass 函数根据提供的呼号（callsign）计算一个哈希值
-func aprsPass(callsign string) uint16 {
+func AprsPass(callsign string) (uint16, string) {
 	// 查找 '-' 字符的位置，如果找到则截断呼号
+	fmt.Println("callSign:", callsign)
 	stopHere := strings.IndexByte(callsign, '-')
 	if stopHere >= 0 {
 		callsign = callsign[:stopHere]
@@ -34,23 +39,26 @@ func aprsPass(callsign string) uint16 {
 			leftBit = 8
 		}
 		hash ^= uint32(str) << leftBit
-		fmt.Println(str)
+		//fmt.Println(str)
 	}
 
-	return uint16(hash & 0x7fff)
+	return uint16(hash & 0x7fff), realCall
 }
-
-func Test(e echo.Context) error {
+func Test(c echo.Context) error {
 	defer func() {
 		if r := recover(); r != nil {
-			e.Logger().Info("client resp error", r)
-			e.String(200, "data error, please contact BH4FWA use Wechat.")
+			c.Logger().Info("client resp error", r)
+			c.String(200, "data error, please contact BH4FWA use Wechat.")
 			return
 		}
 	}()
-	str := e.Param("callsign")
-	passcode := aprsPass(str)
-	return e.String(200, fmt.Sprintf("%d", passcode))
+	var data = APRSCallSign{}
+	err := c.Bind(&data)
+	if err != nil {
+		c.String(200, "data error, please contact BH4FWA use Wechat.")
+	}
+	passcode, realCall := AprsPass(data.CallSign)
+	return c.String(200, "InputCallSign:"+data.CallSign+"Calc CallSign:"+realCall+" APRS Pass Code:"+fmt.Sprintf("%d", passcode))
 }
 
 func MainFunc(w http.ResponseWriter, r *http.Request) {
