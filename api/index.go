@@ -5,6 +5,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strings"
+	"time"
 )
 
 var srv http.Handler
@@ -23,7 +24,7 @@ type APRSCallSign struct {
 // aprsPass 函数根据提供的呼号（callsign）计算一个哈希值
 func AprsPass(callsign string) (uint16, string) {
 	// 查找 '-' 字符的位置，如果找到则截断呼号
-	fmt.Println("callSign:", callsign)
+	//fmt.Println("callSign:", callsign)
 	stopHere := strings.IndexByte(callsign, '-')
 	if stopHere >= 0 {
 		callsign = callsign[:stopHere]
@@ -31,7 +32,7 @@ func AprsPass(callsign string) (uint16, string) {
 	// 将呼号转换为大写
 	realCall := strings.ToUpper(callsign)
 
-	fmt.Println("realCall:", realCall)
+	//fmt.Println("realCall:", realCall)
 	hash := uint32(0x73e2)
 	for i, str := range realCall {
 		leftBit := 0
@@ -58,7 +59,10 @@ func Test(c echo.Context) error {
 		c.String(200, "data error, please contact BH4FWA use Wechat.")
 	}
 	passcode, realCall := AprsPass(data.CallSign)
-	return c.String(200, "InputCallSign:"+data.CallSign+"Calc CallSign:"+realCall+" APRS Pass Code:"+fmt.Sprintf("%d", passcode))
+	timeNow := time.Now().Format(time.DateTime)
+	returnStr := "Beijing Time: " + timeNow + ", InputCallSign:" + data.CallSign + ",  Calc CallSign:" + realCall + ", APRS Pass Code:" + fmt.Sprintf("%d", passcode)
+	fmt.Println(returnStr)
+	return c.String(200, returnStr)
 }
 
 func MainFunc(w http.ResponseWriter, r *http.Request) {
